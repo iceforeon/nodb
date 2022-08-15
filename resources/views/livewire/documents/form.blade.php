@@ -1,14 +1,22 @@
 <div>
+  <pre class="mb-5">{{ $errors }}</pre>
   <form wire:submit.prevent="save" class="divide-y divide-gray-200">
     <div class="space-y-4">
       <div class="sm:grid grid-cols-2 gap-4">
         <div>
           <label for="title" class="text-sm font-semibold leading-6 text-gray-900">Title</label>
-          <input wire:model.lazy="document.title" type="text" name="title" id="title" maxlength="100" class="shadow-sm focus:ring-slate-500 focus:border-slate-500 block w-full sm:text-sm border-gray-300 rounded-sm mt-2">
+          <input wire:model.lazy="document.title" type="text" name="title" id="title" maxlength="100" class="shadow-sm focus:ring-slate-500 focus:border-slate-500 block w-full sm:text-sm border-gray-300 rounded-sm mt-2" maxlength="100">
         </div>
 
         <div class="mt-4 sm:mt-0">
-          <label for="slug" class="text-sm font-semibold leading-6 text-gray-900">Slug</label>
+          <div @class(['flex items-center', 'justify-between' => $hashid])>
+            <label for="slug" class="text-sm font-semibold leading-6 text-gray-900">Slug</label>
+            @if ($hashid)
+            <button  wire:click="resetSlug" type="button" class="text-sm font-medium text-gray-700 underline">
+              Clear Slug
+            </button>
+            @endif
+          </div>
           <input wire:model.lazy="document.slug" type="text" name="slug" id="slug" maxlength="100" class="shadow-sm focus:ring-slate-500 focus:border-slate-500 block w-full sm:text-sm border-gray-300 rounded-sm mt-2" tabindex="-1">
         </div>
       </div>
@@ -184,10 +192,11 @@
       </div>
     </div>
 
-    <div @class([ 'flex items-center mt-4 pt-4' , 'justify-end'=> ! $slug,
-      'justify-between' => $slug
+    <div @class([
+        'flex items-center mt-4 pt-4' , 'justify-end'=> ! $hashid,
+        'justify-between' => $hashid
       ])>
-      @if ($slug)
+      @if ($hashid)
       <button wire:click="delete" type="button" class="underline text-sm text-red-600 hover:text-red-700">
         Delete Document
       </button>

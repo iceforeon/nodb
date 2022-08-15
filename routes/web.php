@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Document;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -13,8 +14,10 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', fn () => view('welcome'))
-    ->name('welcome');
+
+
+Route::get('document/{slug}', fn ($slug) => Document::where('slug', $slug)->firstOrFail())
+->name('document');
 
 Route::get('/dashboard', fn () => view('dashboard'))
     ->middleware('auth')
@@ -31,8 +34,11 @@ Route::group([
     Route::get('documents', fn () => view('documents.create'))
         ->name('create');
 
-    Route::get('{slug}/edit', fn ($slug) => view('documents.edit', ['slug' => $slug]))
+    Route::get('{hashid}/edit', fn ($hashid) => view('documents.edit', ['hashid' => $hashid]))
         ->name('edit');
 });
 
 require __DIR__.'/auth.php';
+
+Route::get('/', fn () => view('welcome'))
+    ->name('welcome');

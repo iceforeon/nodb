@@ -31,4 +31,10 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'hashid' => [
+        'salt' => 'nodb-hashid',
+        'length' => 12,
+        'alphabet' => 'abcdefghijklmnopqrstuvwxyz1234567890',
+    ],
+
 ];

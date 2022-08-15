@@ -3,40 +3,33 @@
 namespace App\Http\Livewire\Documents;
 
 use App\Models\Document;
-use Illuminate\Validation\Rule;
 use League\CommonMark\GithubFlavoredMarkdownConverter;
 use League\HTMLToMarkdown\HtmlConverter;
 use Livewire\Component;
 
 class Form extends Component
 {
-    public $slug;
+    public $hashid;
 
     public Document $document;
 
     protected function rules()
     {
         return [
-            'document.title' => [
-                'required', 'string', 'max:255',
-            ],
-            'document.slug' => [
-                'required', 'string', Rule::unique('documents')->ignore($this->document),
-            ],
-            'document.content' => [
-                'nullable', 'string',
-            ],
+            'document.title' => ['required', 'string', 'max:100'],
+            'document.slug' => ['nullable', 'string'],
+            'document.content' => ['nullable', 'string'],
         ];
     }
 
     public function mount()
     {
-        $this->document = $this->slug
-            ? Document::findOr($this->slug, fn () => abort(404))
+        $this->document = $this->hashid
+            ? Document::findOr($this->hashid, fn () => abort(404))
             : (new Document);
 
         $this->document->content = $this->document->content
-            ? $this->contentMarkdownToHtml()
+            ? $this->markdownToHtml($this->document->content)
             : null;
     }
 
@@ -47,43 +40,44 @@ class Form extends Component
 
     public function save()
     {
+        $this->validate();
+
         Document::updateOrCreate([
-            'slug' => $this->document->slug,
+            'hashid' => $this->document->hashid,
         ], [
             'title' => $this->document->title,
-            'content' => $this->contentHtmlToMarkdown(),
+            'slug' => $this->document->slug,
+            'content' => $this->document->content
+                ? $this->htmlToMarkdown($this->document->content)
+                : null,
         ]);
 
         $this->redirectRoute('documents.index');
     }
 
-    public function contentHtmlToMarkdown()
+    public function htmlToMarkdown($content)
     {
         return (new HtmlConverter(['header_style' => 'atx']))
-            ->convert($this->document->content);
+            ->convert($content);
     }
 
-    public function contentMarkdownToHtml()
+    public function markdownToHtml($content)
     {
-        return (new GithubFlavoredMarkdownConverter([
-            'html_input' => 'strip',
-            'allow_unsafe_links' => false,
-        ]))
-            ->convert($this->document->content)
+        return (new GithubFlavoredMarkdownConverter())
+            ->convert($content)
             ->getContent();
     }
 
     public function delete()
     {
-        if ($document = Document::findOr($this->slug, fn () => abort(404))) {
-            $document->delete();
-        }
+        Document::findOr($this->hashid, fn () => abort(404))
+            ->delete();
 
         $this->redirectRoute('documents.index');
     }
 
-    public function updatedDocumentTitle($value)
+    public function resetSlug()
     {
-        $this->document->slug = str($value)->slug()->toString();
+        $this->document->slug = null;
     }
 }
